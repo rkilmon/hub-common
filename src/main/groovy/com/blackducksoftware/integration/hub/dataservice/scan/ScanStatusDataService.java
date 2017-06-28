@@ -23,10 +23,7 @@
  */
 package com.blackducksoftware.integration.hub.dataservice.scan;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import com.blackducksoftware.integration.exception.IntegrationException;
@@ -39,9 +36,6 @@ import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 import com.blackducksoftware.integration.hub.exception.HubTimeoutExceededException;
 import com.blackducksoftware.integration.hub.model.enumeration.CodeLocationEnum;
 import com.blackducksoftware.integration.hub.model.enumeration.ScanSummaryStatusEnum;
-import com.blackducksoftware.integration.hub.model.view.CodeLocationView;
-import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
-import com.blackducksoftware.integration.hub.model.view.ProjectView;
 import com.blackducksoftware.integration.hub.model.view.ScanSummaryView;
 import com.blackducksoftware.integration.log.IntLogger;
 
@@ -50,15 +44,7 @@ public class ScanStatusDataService {
 
     private static final long DEFAULT_TIMEOUT = 300000l;
 
-    private final ProjectRequestService projectRequestService;
-
-    private final ProjectVersionRequestService projectVersionRequestService;
-
-    private final CodeLocationRequestService codeLocationRequestService;
-
-    private final ScanSummaryRequestService scanSummaryRequestService;
-
-    private final MetaService metaService;
+    private final PendingScans pendingScans;
 
     private final long timeoutInMilliseconds;
 
@@ -67,11 +53,6 @@ public class ScanStatusDataService {
             final CodeLocationRequestService codeLocationRequestService,
             final ScanSummaryRequestService scanSummaryRequestService, final MetaService metaService,
             final long timeoutInMilliseconds) {
-        this.metaService = metaService;
-        this.projectRequestService = projectRequestService;
-        this.projectVersionRequestService = projectVersionRequestService;
-        this.codeLocationRequestService = codeLocationRequestService;
-        this.scanSummaryRequestService = scanSummaryRequestService;
 
         long timeout = timeoutInMilliseconds;
         if (timeoutInMilliseconds <= 0l) {
@@ -79,6 +60,9 @@ public class ScanStatusDataService {
             logger.alwaysLog(timeoutInMilliseconds + "ms is not a valid BOM wait time, using : " + timeout + "ms instead");
         }
         this.timeoutInMilliseconds = timeout;
+
+        this.pendingScans = new PendingScans(projectRequestService, projectVersionRequestService, codeLocationRequestService, scanSummaryRequestService,
+                metaService);
     }
 
     /**
@@ -94,8 +78,26 @@ public class ScanStatusDataService {
      */
     public void assertBomImportScanStartedThenFinished(final String projectName, final String projectVersion)
             throws HubTimeoutExceededException, IntegrationException {
-        final List<ScanSummaryView> pendingScans = waitForPendingScansToStart(projectName, projectVersion,
-                timeoutInMilliseconds);
+        final PendingScansRequest pendingScansRequest = PendingScansRequest.createCodeLocationRequest(projectName, projectVersion, CodeLocationEnum.BOM_IMPORT);
+        final List<ScanSummaryView> pendingScans = waitForPendingScansToStart(pendingScansRequest, timeoutInMilliseconds);
+        waitForScansToComplete(pendingScans, timeoutInMilliseconds);
+    }
+
+    /**
+     * For the provided projectName and projectVersion, wait at most
+     * timeoutInMilliseconds for the project/version to exist and/or
+     * at least one pending scan (of any type) to begin. Then, wait at most
+     * timeoutInMilliseconds for all discovered pending scans to
+     * complete.
+     *
+     * If the timeouts are exceeded, a HubTimeoutExceededException will be
+     * thrown.
+     *
+     */
+    public void assertScanStartedThenFinished(final String projectName, final String projectVersion)
+            throws HubTimeoutExceededException, IntegrationException {
+        final PendingScansRequest pendingScansRequest = PendingScansRequest.createProjectVersionRequest(projectName, projectVersion);
+        final List<ScanSummaryView> pendingScans = waitForPendingScansToStart(pendingScansRequest, timeoutInMilliseconds);
         waitForScansToComplete(pendingScans, timeoutInMilliseconds);
     }
 
@@ -105,16 +107,23 @@ public class ScanStatusDataService {
      *
      * If the timeout is exceeded, a HubTimeoutExceededException will be thrown.
      *
+     * @deprecated use assertScansFinished instead - code location type doesn't matter if you already have
+     *             ScanSummaryViews
      */
+    @Deprecated
     public void assertBomImportScansFinished(final List<ScanSummaryView> pendingScans) throws HubTimeoutExceededException, IntegrationException {
         waitForScansToComplete(pendingScans, timeoutInMilliseconds);
     }
 
-    private List<ScanSummaryView> waitForPendingScansToStart(final String projectName, final String projectVersion,
-            final long scanStartedTimeoutInMilliseconds) throws HubIntegrationException {
-        List<ScanSummaryView> pendingScans = getPendingScans(projectName, projectVersion);
+    public void assertScansFinished(final List<ScanSummaryView> pendingScans) throws HubTimeoutExceededException, IntegrationException {
+        waitForScansToComplete(pendingScans, timeoutInMilliseconds);
+    }
+
+    private List<ScanSummaryView> waitForPendingScansToStart(final PendingScansRequest pendingScansRequest, final long scanStartedTimeoutInMilliseconds)
+            throws HubIntegrationException {
+        List<ScanSummaryView> scanSummaryViews = pendingScans.getPendingScans(pendingScansRequest);
         final long startedTime = System.currentTimeMillis();
-        boolean pendingScansOk = pendingScans.size() > 0;
+        boolean pendingScansOk = scanSummaryViews.size() > 0;
         while (!done(pendingScansOk, scanStartedTimeoutInMilliseconds, startedTime,
                 "No scan has started within the specified wait time: %d minutes")) {
             try {
@@ -122,18 +131,18 @@ public class ScanStatusDataService {
             } catch (final InterruptedException e) {
                 throw new HubIntegrationException("The thread waiting for the scan to start was interrupted: " + e.getMessage(), e);
             }
-            pendingScans = getPendingScans(projectName, projectVersion);
-            pendingScansOk = pendingScans.size() > 0;
+            scanSummaryViews = pendingScans.getPendingScans(pendingScansRequest);
+            pendingScansOk = scanSummaryViews.size() > 0;
         }
 
-        return pendingScans;
+        return scanSummaryViews;
     }
 
-    private void waitForScansToComplete(List<ScanSummaryView> pendingScans, final long scanStartedTimeoutInMilliseconds)
+    private void waitForScansToComplete(List<ScanSummaryView> scanSummaryViews, final long scanStartedTimeoutInMilliseconds)
             throws HubTimeoutExceededException, IntegrationException {
-        pendingScans = getPendingScans(pendingScans);
+        scanSummaryViews = pendingScans.getPendingScans(scanSummaryViews);
         final long startedTime = System.currentTimeMillis();
-        boolean pendingScansOk = pendingScans.isEmpty();
+        boolean pendingScansOk = scanSummaryViews.isEmpty();
         while (!done(pendingScansOk, scanStartedTimeoutInMilliseconds, startedTime,
                 "The pending scans have not completed within the specified wait time: %d minutes")) {
             try {
@@ -141,8 +150,8 @@ public class ScanStatusDataService {
             } catch (final InterruptedException e) {
                 throw new HubIntegrationException("The thread waiting for the scan to complete was interrupted: " + e.getMessage(), e);
             }
-            pendingScans = getPendingScans(pendingScans);
-            pendingScansOk = pendingScans.isEmpty();
+            scanSummaryViews = pendingScans.getPendingScans(scanSummaryViews);
+            pendingScansOk = scanSummaryViews.isEmpty();
         }
     }
 
@@ -165,85 +174,16 @@ public class ScanStatusDataService {
         return elapsed > timeoutInMilliseconds;
     }
 
-    private List<ScanSummaryView> getPendingScans(final String projectName, final String projectVersion) {
-        List<ScanSummaryView> pendingScans = new ArrayList<>();
-        try {
-            final ProjectView projectItem = projectRequestService.getProjectByName(projectName);
-            final ProjectVersionView projectVersionItem = projectVersionRequestService.getProjectVersion(projectItem, projectVersion);
-            final String projectVersionUrl = metaService.getHref(projectVersionItem);
-
-            final List<CodeLocationView> allCodeLocations = codeLocationRequestService
-                    .getAllCodeLocationsForCodeLocationType(CodeLocationEnum.BOM_IMPORT);
-
-            final List<String> allScanSummariesLinks = new ArrayList<>();
-            for (final CodeLocationView codeLocationItem : allCodeLocations) {
-                final String mappedProjectVersionUrl = codeLocationItem.mappedProjectVersion;
-                if (projectVersionUrl.equals(mappedProjectVersionUrl)) {
-                    final String scanSummariesLink = metaService.getFirstLink(codeLocationItem, MetaService.SCANS_LINK);
-                    allScanSummariesLinks.add(scanSummariesLink);
-                }
-            }
-
-            final List<ScanSummaryView> allScanSummaries = new ArrayList<>();
-            for (final String scanSummaryLink : allScanSummariesLinks) {
-                allScanSummaries.addAll(scanSummaryRequestService.getAllScanSummaryItems(scanSummaryLink));
-            }
-
-            pendingScans = new ArrayList<>();
-            for (final ScanSummaryView scanSummaryItem : allScanSummaries) {
-                if (isPending(scanSummaryItem.status)) {
-                    pendingScans.add(scanSummaryItem);
-                }
-            }
-        } catch (final Exception e) {
-            pendingScans = new ArrayList<>();
-            // ignore, since we might not have found a project or version, etc
-            // so just keep waiting until the timeout
-        }
-
-        return pendingScans;
-    }
-
-    private List<ScanSummaryView> getPendingScans(final List<ScanSummaryView> scanSummaries) throws IntegrationException {
-        final List<ScanSummaryView> pendingScans = new ArrayList<>();
-        for (final ScanSummaryView scanSummaryItem : scanSummaries) {
-            final String scanSummaryLink = metaService.getHref(scanSummaryItem);
-            final ScanSummaryView currentScanSummaryItem = scanSummaryRequestService.getItem(scanSummaryLink, ScanSummaryView.class);
-            if (isPending(currentScanSummaryItem.status)) {
-                pendingScans.add(currentScanSummaryItem);
-            } else if (isError(currentScanSummaryItem.status)) {
-                throw new HubIntegrationException("There was a problem in the Hub processing the scan(s). Error Status : "
-                        + currentScanSummaryItem.status.toString() + ", " + currentScanSummaryItem.statusMessage);
-            }
-        }
-
-        return pendingScans;
-    }
-
-    private static final Set<ScanSummaryStatusEnum> PENDING_STATES = EnumSet.of(ScanSummaryStatusEnum.UNSTARTED, ScanSummaryStatusEnum.SCANNING,
-            ScanSummaryStatusEnum.SAVING_SCAN_DATA,
-            ScanSummaryStatusEnum.SCAN_DATA_SAVE_COMPLETE, ScanSummaryStatusEnum.REQUESTED_MATCH_JOB, ScanSummaryStatusEnum.MATCHING,
-            ScanSummaryStatusEnum.BOM_VERSION_CHECK, ScanSummaryStatusEnum.BUILDING_BOM);
-
-    private static final Set<ScanSummaryStatusEnum> DONE_STATES = EnumSet.of(ScanSummaryStatusEnum.COMPLETE, ScanSummaryStatusEnum.CANCELLED,
-            ScanSummaryStatusEnum.CLONED, ScanSummaryStatusEnum.ERROR_SCANNING,
-            ScanSummaryStatusEnum.ERROR_SAVING_SCAN_DATA, ScanSummaryStatusEnum.ERROR_MATCHING, ScanSummaryStatusEnum.ERROR_BUILDING_BOM,
-            ScanSummaryStatusEnum.ERROR);
-
-    private static final Set<ScanSummaryStatusEnum> ERROR_STATES = EnumSet.of(ScanSummaryStatusEnum.CANCELLED, ScanSummaryStatusEnum.ERROR_SCANNING,
-            ScanSummaryStatusEnum.ERROR_SAVING_SCAN_DATA,
-            ScanSummaryStatusEnum.ERROR_MATCHING, ScanSummaryStatusEnum.ERROR_BUILDING_BOM, ScanSummaryStatusEnum.ERROR);
-
     public boolean isPending(final ScanSummaryStatusEnum statusEnum) {
-        return PENDING_STATES.contains(statusEnum);
+        return pendingScans.isPending(statusEnum);
     }
 
     public boolean isDone(final ScanSummaryStatusEnum statusEnum) {
-        return DONE_STATES.contains(statusEnum);
+        return pendingScans.isDone(statusEnum);
     }
 
     public boolean isError(final ScanSummaryStatusEnum statusEnum) {
-        return ERROR_STATES.contains(statusEnum);
+        return pendingScans.isError(statusEnum);
     }
 
 }
