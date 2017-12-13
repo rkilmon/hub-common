@@ -50,17 +50,21 @@ public class LicenseDataService {
     }
 
     public LicenseView getLicenseView(final VersionBomLicenseView versionBomLicenseView) throws IntegrationException {
-        final String licenseUrl = versionBomLicenseView.license;
+        return getLicenseView(versionBomLicenseView.license);
+    }
+
+    public LicenseView getLicenseView(final ComplexLicenseView complexLicenseView) throws IntegrationException {
+        return getLicenseView(complexLicenseView.license);
+    }
+
+    public LicenseView getLicenseView(final String licenseUrl) throws IntegrationException {
         if (licenseUrl == null) {
             return null;
         }
-        final LicenseView licenseView = licenseRequestService.getItem(licenseUrl, LicenseView.class);
-        return licenseView;
+        return licenseRequestService.getItem(licenseUrl, LicenseView.class);
     }
 
     public String getLicenseText(final LicenseView licenseView) throws IntegrationException {
-        final String licenseText = licenseRequestService.getLicenseText(licenseView);
-        return licenseText;
+        return licenseRequestService.getLicenseText(licenseView);
     }
-
 }
