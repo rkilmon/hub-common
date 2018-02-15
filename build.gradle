@@ -25,7 +25,3 @@ dependencies {
     testCompile 'org.codehaus.groovy:groovy-all:2.4.12'
     testCompile 'org.mockito:mockito-core:2.13.0'
 }
-
-test { useJUnit { excludeCategories 'com.blackducksoftware.integration.IntegrationTest' } }
-
-task testIntegration(type: Test) { useJUnit { includeCategories 'com.blackducksoftware.integration.IntegrationTest' } }

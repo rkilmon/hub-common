@@ -28,7 +28,6 @@ import org.junit.BeforeClass
 import org.junit.Test
 import org.junit.experimental.categories.Category
 
-import com.blackducksoftware.integration.IntegrationTest
 import com.blackducksoftware.integration.hub.api.codelocation.CodeLocationService
 import com.blackducksoftware.integration.hub.api.scan.DryRunUploadResponse
 import com.blackducksoftware.integration.hub.api.scan.DryRunUploadService
@@ -39,8 +38,9 @@ import com.blackducksoftware.integration.hub.service.HubServicesFactory
 import com.blackducksoftware.integration.log.IntLogger
 import com.blackducksoftware.integration.log.LogLevel
 import com.blackducksoftware.integration.log.PrintStreamIntLogger
+import com.blackducksoftware.integration.test.annotation.HubConnectionTest
 
-@Category(IntegrationTest.class)
+@Category(HubConnectionTest.class)
 class DryRunUploadServiceTestIT {
     private static final RestConnectionTestHelper restConnectionTestHelper = new RestConnectionTestHelper();
 

@@ -26,9 +26,7 @@ package com.blackducksoftware.integration.hub.rest;
 import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.io.InputStream;
 import java.net.URL;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -40,11 +38,12 @@ import com.blackducksoftware.integration.hub.service.HubServicesFactory;
 import com.blackducksoftware.integration.log.IntLogger;
 import com.blackducksoftware.integration.log.LogLevel;
 import com.blackducksoftware.integration.log.PrintStreamIntLogger;
+import com.blackducksoftware.integration.test.TestProperties;
 
 import okhttp3.OkHttpClient;
 
 public class RestConnectionTestHelper {
-    private Properties testProperties;
+    private TestProperties testProperties;
 
     private final String hubServerUrl;
 
@@ -60,34 +59,11 @@ public class RestConnectionTestHelper {
 
     private void initProperties() {
         Logger.getLogger(OkHttpClient.class.getName()).setLevel(Level.FINE);
-        testProperties = new Properties();
-        final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        try (final InputStream is = classLoader.getResourceAsStream("test.properties")) {
-            testProperties.load(is);
-        } catch (final Exception e) {
-            System.err.println("reading test.properties failed!");
-        }
-
-        if (testProperties.isEmpty()) {
-            try {
-                loadOverrideProperties(TestingPropertyKey.values());
-            } catch (final Exception e) {
-                System.err.println("reading properties from the environment failed");
-            }
-        }
-    }
-
-    private void loadOverrideProperties(final TestingPropertyKey[] keys) {
-        for (final TestingPropertyKey key : keys) {
-            final String prop = System.getenv(key.toString());
-            if (prop != null && !prop.isEmpty()) {
-                testProperties.setProperty(key.toString(), prop);
-            }
-        }
+        testProperties = new TestProperties();
     }
 
     public String getProperty(final TestingPropertyKey key) {
-        return getProperty(key.toString());
+        return getProperty(key.name());
     }
 
     public String getProperty(final String key) {

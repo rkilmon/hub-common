@@ -31,7 +31,6 @@ import java.util.List;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import com.blackducksoftware.integration.IntegrationTest;
 import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.dataservice.user.UserDataService;
 import com.blackducksoftware.integration.hub.model.view.ProjectView;
@@ -39,13 +38,13 @@ import com.blackducksoftware.integration.hub.model.view.RoleView;
 import com.blackducksoftware.integration.hub.rest.RestConnectionTestHelper;
 import com.blackducksoftware.integration.hub.rest.TestingPropertyKey;
 import com.blackducksoftware.integration.hub.service.HubServicesFactory;
+import com.blackducksoftware.integration.test.annotation.HubConnectionTest;
 
-@Category(IntegrationTest.class)
+@Category(HubConnectionTest.class)
 public class UserServiceTestIT {
     private static final RestConnectionTestHelper restConnectionTestHelper = new RestConnectionTestHelper(TestingPropertyKey.TEST_HTTPS_HUB_SERVER_URL.toString());
 
-    // TODO - Tested in-house; we need a dedicated Hub 4.3.x instance for testing before we can uncomment this.
-    // @Test
+    @Test
     public void getProjectsForUserTestIT() throws IllegalArgumentException, IntegrationException {
         final HubServicesFactory hubServicesFactory = restConnectionTestHelper.createHubServicesFactory();
 

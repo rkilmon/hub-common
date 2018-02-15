@@ -35,11 +35,11 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import com.blackducksoftware.integration.IntegrationTest;
 import com.blackducksoftware.integration.hub.builder.HubServerConfigBuilder;
 import com.blackducksoftware.integration.hub.rest.RestConnectionTestHelper;
+import com.blackducksoftware.integration.test.annotation.HubConnectionTest;
 
-@Category(IntegrationTest.class)
+@Category(HubConnectionTest.class)
 public class HubServerConfigBuilderTestIT {
     private static final RestConnectionTestHelper restConnectionTestHelper = new RestConnectionTestHelper();
 

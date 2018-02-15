@@ -40,7 +40,6 @@ import org.junit.experimental.categories.Category;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
-import com.blackducksoftware.integration.IntegrationTest;
 import com.blackducksoftware.integration.hub.api.nonpublic.HubVersionService;
 import com.blackducksoftware.integration.hub.builder.HubServerConfigBuilder;
 import com.blackducksoftware.integration.hub.rest.CredentialsRestConnection;
@@ -48,9 +47,9 @@ import com.blackducksoftware.integration.hub.rest.RestConnectionTestHelper;
 import com.blackducksoftware.integration.hub.rest.TestingPropertyKey;
 import com.blackducksoftware.integration.hub.service.HubServicesFactory;
 import com.blackducksoftware.integration.test.TestLogger;
+import com.blackducksoftware.integration.test.annotation.HubConnectionTest;
 import com.blackducksoftware.integration.util.CIEnvironmentVariables;
 
-@Category(IntegrationTest.class)
 public class CLIInstallerTestIT {
     private static final RestConnectionTestHelper restConnectionTestHelper = new RestConnectionTestHelper();
 
@@ -444,6 +443,7 @@ public class CLIInstallerTestIT {
     }
 
     @Test
+    @Category(HubConnectionTest.class)
     public void testPerformInstallationNullHost() throws Exception {
         exception.expect(IllegalArgumentException.class);
         final File installDir = folder.newFolder();
@@ -460,6 +460,7 @@ public class CLIInstallerTestIT {
     }
 
     @Test
+    @Category(HubConnectionTest.class)
     public void testPerformInstallationUpdatingEmptyHost() throws Exception {
         exception.expect(IllegalArgumentException.class);
         final File installDir = folder.newFolder();
@@ -475,6 +476,7 @@ public class CLIInstallerTestIT {
     }
 
     @Test
+    @Category(HubConnectionTest.class)
     public void testPerformInstallation() throws Exception {
         final TestLogger logger = new TestLogger();
         final File installDir = folder.newFolder();
@@ -503,6 +505,7 @@ public class CLIInstallerTestIT {
     }
 
     @Test
+    @Category(HubConnectionTest.class)
     public void testPerformInstallationPassThroughProxy() throws Exception {
         final TestLogger logger = new TestLogger();
         final File installDir = folder.newFolder();
@@ -544,6 +547,7 @@ public class CLIInstallerTestIT {
     }
 
     @Test
+    @Category(HubConnectionTest.class)
     public void testPerformInstallationBasicProxy() throws Exception {
         final TestLogger logger = new TestLogger();
         final File installDir = folder.newFolder();

@@ -33,7 +33,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import com.blackducksoftware.integration.IntegrationTest;
 import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.api.project.version.ProjectVersionService;
 import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionDistributionEnum;
@@ -45,8 +44,9 @@ import com.blackducksoftware.integration.hub.model.view.ProjectView;
 import com.blackducksoftware.integration.hub.rest.RestConnectionTestHelper;
 import com.blackducksoftware.integration.hub.rest.exception.IntegrationRestException;
 import com.blackducksoftware.integration.hub.service.HubServicesFactory;
+import com.blackducksoftware.integration.test.annotation.HubConnectionTest;
 
-@Category(IntegrationTest.class)
+@Category(HubConnectionTest.class)
 public class ProjectServiceTestIT {
     private static HubServicesFactory hubServices;
     private static ProjectService projectRequestService;

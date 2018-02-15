@@ -29,12 +29,12 @@ import org.junit.Test
 import org.junit.experimental.categories.Category
 import org.junit.rules.TemporaryFolder
 
-import com.blackducksoftware.integration.IntegrationTest
 import com.blackducksoftware.integration.hub.rest.RestConnectionTestHelper
 import com.blackducksoftware.integration.hub.service.HubServicesFactory
 import com.blackducksoftware.integration.log.IntLogger
+import com.blackducksoftware.integration.test.annotation.HubConnectionTest
 
-@Category(IntegrationTest.class)
+@Category(HubConnectionTest.class)
 class RiskReportDataServiceTestIT {
     @Rule
     public TemporaryFolder folderForReport = new TemporaryFolder()
