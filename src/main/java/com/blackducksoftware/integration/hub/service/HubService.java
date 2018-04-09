@@ -32,6 +32,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 
 import com.blackducksoftware.integration.exception.IntegrationException;
+import com.blackducksoftware.integration.extractor.JsonExtractor;
 import com.blackducksoftware.integration.hub.api.core.HubPath;
 import com.blackducksoftware.integration.hub.api.core.HubPathMultipleResponses;
 import com.blackducksoftware.integration.hub.api.core.HubPathSingleResponse;
@@ -64,6 +65,7 @@ public class HubService {
     private final JsonParser jsonParser;
     private final Gson gson;
     private final UriCombiner uriCombiner;
+    private final JsonExtractor jsonExtractor;
 
     public HubService(final RestConnection restConnection) {
         this(restConnection, new UriCombiner());
@@ -76,6 +78,7 @@ public class HubService {
         this.gson = restConnection.gson;
         this.uriCombiner = uriCombiner;
         this.metaHandler = new MetaHandler(restConnection.logger);
+        this.jsonExtractor = new JsonExtractor(gson);
         this.hubResponseTransformer = new HubResponseTransformer(restConnection);
         this.hubResponsesTransformer = new HubResponsesTransformer(restConnection, hubResponseTransformer);
     }
@@ -94,6 +97,10 @@ public class HubService {
 
     public Gson getGson() {
         return gson;
+    }
+
+    public JsonExtractor getJsonExtractor() {
+        return jsonExtractor;
     }
 
     public boolean hasLink(final HubView view, final String linkKey) throws HubIntegrationException {

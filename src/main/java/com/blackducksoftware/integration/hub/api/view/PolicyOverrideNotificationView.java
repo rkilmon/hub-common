@@ -23,9 +23,7 @@
  */
 package com.blackducksoftware.integration.hub.api.view;
 
-import com.blackducksoftware.integration.hub.api.response.PolicyOverrideNotificationContent;
+import com.blackducksoftware.integration.hub.api.generated.view.NotificationView;
 
-public class PolicyOverrideNotificationView extends ReducedNotificationView {
-    public PolicyOverrideNotificationContent content;
-
+public class PolicyOverrideNotificationView extends NotificationView {
 }

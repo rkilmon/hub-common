@@ -28,16 +28,17 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 import com.blackducksoftware.integration.exception.IntegrationException;
+import com.blackducksoftware.integration.extractor.JsonExtractor;
 import com.blackducksoftware.integration.hub.api.generated.view.ComponentVersionView;
+import com.blackducksoftware.integration.hub.api.generated.view.NotificationView;
 import com.blackducksoftware.integration.hub.api.generated.view.ProjectVersionView;
-import com.blackducksoftware.integration.hub.api.view.ReducedNotificationView;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 import com.blackducksoftware.integration.hub.exception.HubItemTransformException;
 import com.blackducksoftware.integration.hub.service.HubService;
 import com.blackducksoftware.integration.log.IntLogger;
 import com.blackducksoftware.integration.parallel.processor.ItemTransformer;
 
-public abstract class AbstractNotificationTransformer implements ItemTransformer<NotificationContentItem, ReducedNotificationView> {
+public abstract class AbstractNotificationTransformer implements ItemTransformer<NotificationContentItem, NotificationView> {
     final IntLogger logger;
     final HubService hubService;
 
@@ -46,8 +47,12 @@ public abstract class AbstractNotificationTransformer implements ItemTransformer
         this.logger = hubService.getRestConnection().logger;
     }
 
+    public JsonExtractor getJsonExtractor() {
+        return hubService.getJsonExtractor();
+    }
+
     @Override
-    public abstract List<NotificationContentItem> transform(ReducedNotificationView item) throws HubItemTransformException;
+    public abstract List<NotificationContentItem> transform(NotificationView item) throws HubItemTransformException;
 
     protected ProjectVersionModel createFullProjectVersion(final String projectVersionUrl, final String projectName, final String versionName) throws IntegrationException {
         ProjectVersionView item;

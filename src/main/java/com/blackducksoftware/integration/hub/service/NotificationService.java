@@ -38,8 +38,8 @@ import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.RestConstants;
 import com.blackducksoftware.integration.hub.api.core.HubPathMultipleResponses;
 import com.blackducksoftware.integration.hub.api.generated.discovery.ApiDiscovery;
+import com.blackducksoftware.integration.hub.api.generated.view.NotificationView;
 import com.blackducksoftware.integration.hub.api.view.PolicyOverrideNotificationView;
-import com.blackducksoftware.integration.hub.api.view.ReducedNotificationView;
 import com.blackducksoftware.integration.hub.api.view.RuleViolationClearedNotificationView;
 import com.blackducksoftware.integration.hub.api.view.RuleViolationNotificationView;
 import com.blackducksoftware.integration.hub.api.view.VulnerabilityNotificationView;
@@ -49,7 +49,6 @@ import com.blackducksoftware.integration.hub.notification.PolicyNotificationFilt
 import com.blackducksoftware.integration.hub.notification.PolicyViolationClearedTransformer;
 import com.blackducksoftware.integration.hub.notification.PolicyViolationOverrideTransformer;
 import com.blackducksoftware.integration.hub.notification.PolicyViolationTransformer;
-import com.blackducksoftware.integration.hub.notification.ReducedNotificationViewResults;
 import com.blackducksoftware.integration.hub.notification.VulnerabilityTransformer;
 import com.blackducksoftware.integration.hub.request.Request;
 import com.blackducksoftware.integration.log.IntLogger;
@@ -57,7 +56,7 @@ import com.blackducksoftware.integration.parallel.processor.ParallelResourceProc
 import com.blackducksoftware.integration.parallel.processor.ParallelResourceProcessorResults;
 
 public class NotificationService extends DataService {
-    private final Map<String, Class<? extends ReducedNotificationView>> typeMap = new HashMap<>();
+    private final Map<String, Class<? extends NotificationView>> typeMap = new HashMap<>();
 
     private final PolicyNotificationFilter policyNotificationFilter;
 
@@ -75,44 +74,28 @@ public class NotificationService extends DataService {
     }
 
     public NotificationResults getAllNotificationResults(final Date startDate, final Date endDate) throws IntegrationException {
-        final List<ReducedNotificationView> itemList = getAllNotifications(startDate, endDate);
+        final List<NotificationView> itemList = getAllNotifications(startDate, endDate);
         final NotificationResults results = processNotificationsInParallel(itemList);
         return results;
     }
 
-    public List<ReducedNotificationView> getAllNotifications(final Date startDate, final Date endDate) throws IntegrationException {
+    public List<NotificationView> getAllNotifications(final Date startDate, final Date endDate) throws IntegrationException {
         final SimpleDateFormat sdf = new SimpleDateFormat(RestConstants.JSON_DATE_FORMAT);
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         final String startDateString = sdf.format(startDate);
         final String endDateString = sdf.format(endDate);
 
         final Request.Builder requestBuilder = new Request.Builder().addQueryParameter("startDate", startDateString).addQueryParameter("endDate", endDateString);
-        final HubPathMultipleResponses<ReducedNotificationView> notificationLinkResponse = new HubPathMultipleResponses<>(ApiDiscovery.NOTIFICATIONS_LINK, ReducedNotificationView.class);
-        final List<ReducedNotificationView> allNotificationItems = hubService.getResponses(notificationLinkResponse, requestBuilder, true, typeMap);
+        final HubPathMultipleResponses<NotificationView> notificationLinkResponse = new HubPathMultipleResponses<>(ApiDiscovery.NOTIFICATIONS_LINK, NotificationView.class);
+        final List<NotificationView> allNotificationItems = hubService.getResponses(notificationLinkResponse, requestBuilder, true, typeMap);
         return allNotificationItems;
     }
 
-    public ReducedNotificationViewResults getAllNotificationViewResults(final Date startDate, final Date endDate) throws IntegrationException {
-        final List<ReducedNotificationView> allNotificationItems = getAllNotifications(startDate, endDate);
-        if (allNotificationItems == null || allNotificationItems.isEmpty()) {
-            return new ReducedNotificationViewResults(allNotificationItems, null, null);
-        }
-
-        final SimpleDateFormat sdf = new SimpleDateFormat(RestConstants.JSON_DATE_FORMAT);
-        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-
-        // we know that the first notification in the list is the most current
-        final Date latestCreatedAtDate = allNotificationItems.get(0).createdAt;
-        final String latestCreatedAtString = sdf.format(latestCreatedAtDate);
-
-        return new ReducedNotificationViewResults(allNotificationItems, latestCreatedAtDate, latestCreatedAtString);
-    }
-
-    private NotificationResults processNotificationsInParallel(final List<ReducedNotificationView> itemList) {
+    private NotificationResults processNotificationsInParallel(final List<NotificationView> itemList) {
         final SortedSet<NotificationContentItem> contentList = new TreeSet<>();
         final List<Exception> exceptionList = new LinkedList<>();
         NotificationResults results;
-        try (ParallelResourceProcessor<NotificationContentItem, ReducedNotificationView> parallelProcessor = createProcessor(logger)) {
+        try (ParallelResourceProcessor<NotificationContentItem, NotificationView> parallelProcessor = createProcessor(logger)) {
             final ParallelResourceProcessorResults<NotificationContentItem> processorResults = parallelProcessor.process(itemList);
             contentList.addAll(processorResults.getResults());
             exceptionList.addAll(processorResults.getExceptions());
@@ -125,8 +108,8 @@ public class NotificationService extends DataService {
         return results;
     }
 
-    private ParallelResourceProcessor<NotificationContentItem, ReducedNotificationView> createProcessor(final IntLogger logger) {
-        final ParallelResourceProcessor<NotificationContentItem, ReducedNotificationView> parallelProcessor = new ParallelResourceProcessor<>(logger);
+    private ParallelResourceProcessor<NotificationContentItem, NotificationView> createProcessor(final IntLogger logger) {
+        final ParallelResourceProcessor<NotificationContentItem, NotificationView> parallelProcessor = new ParallelResourceProcessor<>(logger);
         parallelProcessor.addTransformer(RuleViolationNotificationView.class, new PolicyViolationTransformer(hubService, policyNotificationFilter));
         parallelProcessor.addTransformer(PolicyOverrideNotificationView.class, new PolicyViolationOverrideTransformer(hubService, policyNotificationFilter));
         parallelProcessor.addTransformer(VulnerabilityNotificationView.class, new VulnerabilityTransformer(hubService));
