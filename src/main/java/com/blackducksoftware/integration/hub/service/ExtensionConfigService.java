@@ -47,8 +47,8 @@ public class ExtensionConfigService extends DataService {
         userConfigTransform = new UserConfigTransform(hubService);
     }
 
-    private ParallelResourceProcessor<UserConfigItem, ExternalExtensionUserView> createProcessor() {
-        final ParallelResourceProcessor<UserConfigItem, ExternalExtensionUserView> parallelProcessor = new ParallelResourceProcessor<>(logger);
+    private ParallelResourceProcessor<ExternalExtensionUserView, UserConfigItem> createProcessor() {
+        final ParallelResourceProcessor<ExternalExtensionUserView, UserConfigItem> parallelProcessor = new ParallelResourceProcessor<>(logger);
         parallelProcessor.addTransformer(ExternalExtensionUserView.class, userConfigTransform);
 
         return parallelProcessor;
@@ -64,7 +64,7 @@ public class ExtensionConfigService extends DataService {
     public ParallelResourceProcessorResults<UserConfigItem> getUserConfigList(final String extensionUrl) throws IntegrationException {
         final ExternalExtensionView extension = hubService.getResponse(extensionUrl, ExternalExtensionView.class);
         final List<ExternalExtensionUserView> userOptionList = hubService.getAllResponses(extension, ExternalExtensionView.USER_OPTIONS_LINK_RESPONSE);
-        try (ParallelResourceProcessor<UserConfigItem, ExternalExtensionUserView> parallelProcessor = createProcessor()) {
+        try (ParallelResourceProcessor<ExternalExtensionUserView, UserConfigItem> parallelProcessor = createProcessor()) {
             final ParallelResourceProcessorResults<UserConfigItem> itemList = parallelProcessor.process(userOptionList);
             return itemList;
         } catch (final IOException ex) {

@@ -95,7 +95,7 @@ public class NotificationService extends DataService {
         final SortedSet<NotificationContentItem> contentList = new TreeSet<>();
         final List<Exception> exceptionList = new LinkedList<>();
         NotificationResults results;
-        try (ParallelResourceProcessor<NotificationContentItem, NotificationView> parallelProcessor = createProcessor(logger)) {
+        try (ParallelResourceProcessor<NotificationView, NotificationContentItem> parallelProcessor = createProcessor(logger)) {
             final ParallelResourceProcessorResults<NotificationContentItem> processorResults = parallelProcessor.process(itemList);
             contentList.addAll(processorResults.getResults());
             exceptionList.addAll(processorResults.getExceptions());
@@ -108,8 +108,8 @@ public class NotificationService extends DataService {
         return results;
     }
 
-    private ParallelResourceProcessor<NotificationContentItem, NotificationView> createProcessor(final IntLogger logger) {
-        final ParallelResourceProcessor<NotificationContentItem, NotificationView> parallelProcessor = new ParallelResourceProcessor<>(logger);
+    private ParallelResourceProcessor<NotificationView, NotificationContentItem> createProcessor(final IntLogger logger) {
+        final ParallelResourceProcessor<NotificationView, NotificationContentItem> parallelProcessor = new ParallelResourceProcessor<>(logger);
         parallelProcessor.addTransformer(RuleViolationNotificationView.class, new PolicyViolationTransformer(hubService, policyNotificationFilter));
         parallelProcessor.addTransformer(PolicyOverrideNotificationView.class, new PolicyViolationOverrideTransformer(hubService, policyNotificationFilter));
         parallelProcessor.addTransformer(VulnerabilityNotificationView.class, new VulnerabilityTransformer(hubService));

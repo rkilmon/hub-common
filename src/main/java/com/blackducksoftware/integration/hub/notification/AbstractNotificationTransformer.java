@@ -38,7 +38,7 @@ import com.blackducksoftware.integration.hub.service.HubService;
 import com.blackducksoftware.integration.log.IntLogger;
 import com.blackducksoftware.integration.parallel.processor.ItemTransformer;
 
-public abstract class AbstractNotificationTransformer implements ItemTransformer<NotificationContentItem, NotificationView> {
+public abstract class AbstractNotificationTransformer implements ItemTransformer<NotificationView, NotificationContentItem> {
     final IntLogger logger;
     final HubService hubService;
 
