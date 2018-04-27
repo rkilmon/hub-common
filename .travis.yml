@@ -17,10 +17,10 @@ jdk:
 notifications:
   email:
     recipients:
-    - bdsoss@blackducksoftware.com
+    - rkilmon@blackducksoftware.com
 
 script:
-- "./gradlew clean build jacocoTestReport coveralls sonarqube"
+- "./gradlew clean build -x test"
 
 after_success:
 - bash <(curl -s https://copilot.blackducksoftware.com/ci/travis/scripts/upload)
