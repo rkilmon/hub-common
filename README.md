@@ -3,11 +3,9 @@ The hub-common library supplies convenient communication with a Hub server throu
 
 ## Build ##
 
-[![Build Status](https://travis-ci.org/blackducksoftware/hub-common.svg?branch=master)](https://travis-ci.org/blackducksoftware/hub-common)
-[![Coverage Status](https://coveralls.io/repos/github/blackducksoftware/hub-common/badge.svg?branch=master)](https://coveralls.io/github/blackducksoftware/hub-common?branch=master)
+[![Build Status](https://travis-ci.org/rkilmon/hub-common-demo-rk.svg?branch=master)](https://travis-ci.org/rkilmon/hub-common-demo-rk)
+[![Black Duck Security Risk](https://copilot.blackducksoftware.com/github/repos/rkilmon/hub-common-demo-rk/branches/master/badge-risk.svg)](https://copilot.blackducksoftware.com/github/repos/rkilmon/hub-common-demo-rk/branches/master)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Black Duck Security Risk](https://copilot.blackducksoftware.com/github/repos/blackducksoftware/hub-common/branches/master/badge-risk.svg)](https://copilot.blackducksoftware.com/github/repos/blackducksoftware/hub-common/branches/master)
-[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=com.blackducksoftware.integration%3Ahub-common&metric=alert_status)](https://sonarcloud.io/dashboard?id=com.blackducksoftware.integration%3Ahub-common)
 
 ## Where can I get the latest release? ##
 You can download the latest release from Maven Central.
