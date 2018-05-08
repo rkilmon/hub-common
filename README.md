@@ -16,6 +16,6 @@ All documentation for hub-common can be found on the base project:  https://gith
 ## Uses CoPilot  ##
 
 This project uses Black Duck CoPilot to ensure the integrity and security of the libraries it employs.
-You should too.  PLease sign up at https://copilot.blackducksoftware.com
+You should too.  Please sign up at https://copilot.blackducksoftware.com
 
 
