@@ -12,3 +12,10 @@ You can download the latest release from Maven Central.
 
 ## Documentation ##
 All documentation for hub-common can be found on the base project:  https://github.com/blackducksoftware/hub-common/wiki
+
+## Uses CoPilot  ##
+
+This project uses Black Duck CoPilot to ensure the integrity and security of the libraries it employs.
+You should too.  PLease sign up at https://copilot.blackducksoftware.com
+
+
