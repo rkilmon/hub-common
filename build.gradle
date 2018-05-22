@@ -19,7 +19,7 @@ dependencies {
     compile 'com.blackducksoftware.integration:hub-common-reporting:4.1.0'
     compile 'com.blackducksoftware.integration:integration-bdio:13.0.0'
     compile 'com.blackducksoftware.integration:phone-home-client:0.9.1'
-    //compile group: 'org.apache.struts', name: 'struts2-core', version: '2.3.30'
+    compile group: 'org.apache.struts', name: 'struts2-core', version: '2.3.30'
 
     compile 'joda-time:joda-time:2.9.6'
 
